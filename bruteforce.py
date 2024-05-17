@@ -5,9 +5,24 @@ FILE_PATH = 'datas/datas.xlsx'
 MONEY = 500
 
 
+def calculate_gain(stock_actions_list):
+
+    for actions in stock_actions_list:
+
+        total_gain = 0
+        gain_action = 0
+        for action in actions:
+            gain_action += action["value"] * action["gain"]
+            action["gain action"] = gain_action
+            total_gain += gain_action
+
+        actions.append(total_gain)
+    return stock_actions_list
+
+
 def choose_actions_to_buy():
     stock_actions_list = []
-    boucle = 30000
+    boucle = 65536
     while boucle > 0:
 
         datas = pd.read_excel(FILE_PATH)
@@ -34,24 +49,16 @@ def choose_actions_to_buy():
                 boucle -= 1
                 print(f"Non tested : {boucle}")
 
-    for actions in stock_actions_list:
-
-        total_gain = 0
-        gain_action = 0
-        for action in actions:
-            gain_action += action["value"] * action["gain"]
-            action["gain action"] = gain_action
-            total_gain += gain_action
-
-        actions.append(total_gain)
-
-    best = max(stock_actions_list, key=lambda x: x[-1])
-
-    print(f"Total best gain : {round(best[-1], 2)}")
-    best.pop(-1)
-    best_names = [action["name"] for action in best]
-    print(f"Winners : {best_names}")
-    print(f"Start invest : {sum([action["value"] for action in best])}")
+    return stock_actions_list
 
 
-choose_actions_to_buy()
+stock_actions_list = choose_actions_to_buy()
+final_list = calculate_gain(stock_actions_list)
+
+best = max(final_list, key=lambda x: x[-1])
+
+print(f"Total best gain : {round(best[-1], 2)}")
+best.pop(-1)
+best_names = [action["name"] for action in best]
+print(f"Winners : {best_names}")
+print(f"Start invest : {sum([action["value"] for action in best])}")
