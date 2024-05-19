@@ -1,64 +1,57 @@
 import pandas as pd
-import random
+import itertools
 
 FILE_PATH = 'datas/datas.xlsx'
 MONEY = 500
 
 
-def calculate_gain(stock_actions_list):
+def calculate_gain(combinations_list):
 
-    for actions in stock_actions_list:
+    for actions in combinations_list:
 
         total_gain = 0
         gain_action = 0
         for action in actions:
-            gain_action += action["value"] * action["gain"]
-            action["gain action"] = gain_action
+            gain_action += action[1] * action[2]
+            action.append(gain_action)
             total_gain += gain_action
-
         actions.append(total_gain)
-    return stock_actions_list
+
+    return combinations_list
 
 
-def choose_actions_to_buy():
-    stock_actions_list = []
-    boucle = 65536
-    while boucle > 0:
+def pick_actions():
 
-        datas = pd.read_excel(FILE_PATH)
-        actions_list = datas.to_dict(orient='records')
+    combinations_list = []
+    datas = pd.read_excel(FILE_PATH, header=None)
+    actions_list = datas.values.tolist()
 
-        nb_actions = random.randint(1, 17)
-        choosen_actions = []
+    for i in range(1, len(actions_list) + 1):
+        combinations = list(itertools.combinations(actions_list, i))
 
-        # create stock portfolio with random actions
-        for i in range(nb_actions):
-            rand_action = random.choice(actions_list)
-            choosen_actions.append(rand_action)
-            actions_list.remove(rand_action)
+        for actions in combinations:
+            print(actions)
 
-        # sort actions lists, check if choosen actions not already in list and if cost < money account
-        sorted_actions_names = sorted(choosen_actions, key=lambda dico: int(dico['name'].strip('#')))
-
-        if sorted_actions_names not in stock_actions_list:
-            if sum([action["value"] for action in sorted_actions_names]) < MONEY:
-                stock_actions_list.append(choosen_actions)
-                boucle -= 1
-                print(f"Non tested : {boucle}")
+            if sum(action[1] for action in actions) <= MONEY:
+                print("prix combo ok")
+                combinations_list.append(list(actions))
             else:
-                boucle -= 1
-                print(f"Non tested : {boucle}")
+                print("prix trop cher pour notre petit porte monaie..")
 
-    return stock_actions_list
+    return combinations_list
 
 
-stock_actions_list = choose_actions_to_buy()
-final_list = calculate_gain(stock_actions_list)
+def display_winning_combo(final_list):
+    best = max(final_list, key=lambda x: x[-1])
 
-best = max(final_list, key=lambda x: x[-1])
+    print(f"Total best gain : {round(best[-1], 2)}")
+    best.pop(-1)
+    best_names = [action[0] for action in best]
+    print(f"Winners : {best_names}")
+    print(f"Start invest : {sum([action[1] for action in best])}")
 
-print(f"Total best gain : {round(best[-1], 2)}")
-best.pop(-1)
-best_names = [action["name"] for action in best]
-print(f"Winners : {best_names}")
-print(f"Start invest : {sum([action["value"] for action in best])}")
+
+combinations_list = pick_actions()
+final_list = calculate_gain(combinations_list)
+display_winning_combo(final_list)
+
