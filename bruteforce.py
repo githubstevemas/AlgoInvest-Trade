@@ -51,7 +51,11 @@ def display_winning_combo(final_list):
     print(f"Start invest : {sum([action[1] for action in best])}")
 
 
-combinations_list = pick_actions()
-final_list = calculate_gain(combinations_list)
-display_winning_combo(final_list)
+def run_brute():
+    combinations_list = pick_actions()
+    final_list = calculate_gain(combinations_list)
+    display_winning_combo(final_list)
 
+
+if __name__ == "__main__":
+    run_brute()
