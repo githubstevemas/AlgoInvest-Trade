@@ -3,6 +3,7 @@ import optimized
 
 
 def main_menu():
+
     print("Choose data to analyse :\n")
     print("[1] Datas00\n")
     print("[2} Datas01\n")

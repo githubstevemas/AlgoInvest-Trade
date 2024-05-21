@@ -1,7 +1,7 @@
 import pandas as pd
 import itertools
 
-FILE_PATH = 'datas/datas.xlsx'
+FILE_PATH = 'datas/datas00.xlsx'
 MONEY = 500
 
 
