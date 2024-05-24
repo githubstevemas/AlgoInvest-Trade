@@ -1,14 +1,29 @@
 import pandas as pd
 import itertools
 import time
+import psutil
+import os
 
-FILE_PATH = 'datas/datas00.xlsx'
 MONEY = 500
 
+process = psutil.Process(os.getpid())
 
-def pick_actions():
+
+def profiling():
+    """ Profile time and ram use during runing """
+
+    curent_time = time.time()
+    memory = process.memory_info()
+    memory_mb = memory.rss / (1024 * 1024)
+    return curent_time, memory_mb
+
+
+def pick_actions(file_path):
+    """ With file location get dataset and make a list of all combinaisons and return it """
+
     combinations_list = []
-    datas = pd.read_excel(FILE_PATH, header=None)
+    datas = pd.read_csv(file_path, header=0)
+    datas["profit"] = datas["profit"] / 100
     actions_list = datas.values.tolist()
 
     for i in range(1, len(actions_list) + 1):
@@ -21,15 +36,22 @@ def pick_actions():
 
 
 def calculate_gain(actions):
+    """ With actions list calculate gains for each one """
+
     total_gain = 0
     for action in actions:
         gain = action[1] * (1 + action[2])
         total_gain += gain
+
     return total_gain
 
 
-def check_best_combination():
-    combinations_list = pick_actions()
+def check_best_combination(file_path):
+    """ With dataset file location,
+    run function to make all combinaisons
+    and find witch one is the best and return it """
+
+    combinations_list = pick_actions(file_path)
     best_combination = None
     best_combinaison_gain = 0
 
@@ -42,22 +64,36 @@ def check_best_combination():
     return best_combination, best_combinaison_gain
 
 
-def run_bruteforce():
+def write_txt(chosen_actions, chosen_values, gains_total, file_path):
+    """ Write txt file with results """
 
-    start_time = time.time()
+    file_name = os.path.basename(file_path)
+    txt_path = os.path.splitext(file_name)[0]
 
-    best_combination, best_combinaison_gain = check_best_combination()
+    with open(f"datas/outputs/{txt_path}_brute.txt", "w") as file:
+        file.write(f"Recommended to bought :\n{chosen_actions}\n"
+                   f"Total cost : {chosen_values}$\n"
+                   f"Total return : {round(gains_total - chosen_values, 2)}$")
 
-    best_actions_names = [action[0] for action in best_combination]
-    total_invest = sum([action[1] for action in best_combination])
 
-    print(f"Start invest : {total_invest}")
-    print(f"Total value after 2y : {round(best_combinaison_gain, 2)}")
-    print(f"Recommended actions : {best_actions_names}")
+def run_bruteforce(file_path):
+    """ Start/stop profiling, and run main programm for bruteforce method """
 
-    total_time = time.time() - start_time
-    print(round(total_time, 2))
+    start_time, memory_before = profiling()
+
+    best_combination, total_gains = check_best_combination(file_path)
+
+    chosen_actions = [action[0] for action in best_combination]
+    chosen_values = sum([action[1] for action in best_combination])
+
+    end_time, memory_after = profiling()
+    total_time = end_time - start_time
+    total_memory = memory_after - memory_before
+
+    write_txt(chosen_actions, chosen_values, total_gains, file_path)
+
+    return total_time, total_memory
 
 
 if __name__ == "__main__":
-    run_bruteforce()
+    run_bruteforce("datas/dataset01.csv")
