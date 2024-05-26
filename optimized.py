@@ -17,16 +17,17 @@ def profiling():
     return curent_time, memory_mb
 
 
-def check_best_combination(names, combinaisons, values, profits):
+def check_best_combination(combinaisons, action_list):
+    """ With matrix combinaisons and dataset values, return actions names and their values """
 
-    n = len(names)
+    n = len(action_list)
     chosen_actions = []
     max_money = MONEY * 100
 
     while max_money > 0 and n > 0:
-        if combinaisons[n][max_money] == combinaisons[n - 1][max_money - values[n - 1]] + profits[n - 1]:
-            chosen_actions.append(names[n - 1])
-            max_money -= values[n - 1]
+        if combinaisons[n][max_money] == combinaisons[n - 1][max_money - action_list[n - 1][1]] + action_list[n - 1][2]:
+            chosen_actions.append(action_list[n - 1][0])
+            max_money -= action_list[n - 1][1]
         n -= 1
 
     total_cost = MONEY * 100 - max_money
@@ -34,21 +35,20 @@ def check_best_combination(names, combinaisons, values, profits):
     return chosen_actions, total_cost
 
 
-def pick_actions(profits, values):
-    """ With dataset file location,
-        run function to make all combinaisons
-        and find witch one is the best and return it """
+def pick_actions(actions_list):
+    """ With action list,
+        make combinaisons matrix and return it with the best profit """
 
     money_cents = MONEY * 100
-    values = [int(value * 100) for value in values]
 
-    combinaisons = [[0 for x in range(money_cents + 1)] for x in range(len(values) + 1)]
+    combinaisons = [[0 for x in range(money_cents + 1)] for x in range(len(actions_list) + 1)]
 
-    for i in range(1, len(values) + 1):
+    for i in range(1, len(actions_list) + 1):
         for current_money in range(1, money_cents + 1):
-            if values[i - 1] <= current_money:
-                combinaisons[i][current_money] = max(profits[i - 1] +
-                                                     combinaisons[i - 1][current_money - values[i - 1]],
+
+            if actions_list[i - 1][1] <= current_money:
+                combinaisons[i][current_money] = max(actions_list[i - 1][2] +
+                                                     combinaisons[i - 1][current_money - actions_list[i - 1][1]],
                                                      combinaisons[i - 1][current_money])
             else:
                 combinaisons[i][current_money] = combinaisons[i - 1][current_money]
@@ -66,7 +66,7 @@ def write_txt(chosen_actions, best_profit, total_cost, file_path):
 
     with open(f"datas/outputs/{txt_path}_opti.txt", "w") as file:
         file.write(f"Recommended to bought :\n{chosen_actions}\n"
-                   f"Total cost : {round(total_cost, 2)} $\n"
+                   f"Total cost : {round(total_cost, 2) / 100} $\n"
                    f"Total return : {best_profit} $")
 
 
@@ -76,21 +76,23 @@ def run_optimized(file_path):
     start_time, memory_before = profiling()
 
     datas = pd.read_csv(file_path, header=0)
-    datas = datas[(datas["price"] > 0)]
+    datas_list = datas.values.tolist()
 
-    actions_names = datas["name"].tolist()
-    actions_values = datas["price"].tolist()
-    actions_gains = datas["profit"].tolist()
-    actions_profits = [price * profit for price, profit in zip(actions_values * 100, actions_gains)]
+    actions_list = []
+    for action in datas_list:
+        if float(action[1]) > 0 and float(action[2]) > 0:
+            action_profit = round(float(action[1]) * float(action[2]))
+            actions_list.append([action[0], round(float(action[1]) * 100), action_profit])
 
-    combinaisons, best_profit = pick_actions(actions_profits, actions_values)
-    choosen_actions, total_cost = check_best_combination(actions_names, combinaisons, actions_values, actions_profits)
+    combinaisons, best_profit = pick_actions(actions_list)
+
+    chosen_actions, total_cost = check_best_combination(combinaisons, actions_list)
 
     end_time, memory_after = profiling()
     total_time = end_time - start_time
     total_memory = memory_after - memory_before
 
-    write_txt(choosen_actions, total_cost, best_profit, file_path)
+    write_txt(chosen_actions, best_profit, total_cost, file_path)
 
     return total_time, total_memory
 
