@@ -22,7 +22,7 @@ def edit_graph(time_brute, time_opti, ylabel, title):
 
 def main_menu():
     """ Main menu, alow you to choose method of analysing """
-    
+
     print("\nMenu\n")
     print("[1] Compare brute / Opti methods")
     print("[2] Choose dataset to run")
