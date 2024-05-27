@@ -40,7 +40,7 @@ def calculate_gain(actions):
 
     total_gain = 0
     for action in actions:
-        gain = action[1] * (1 + action[2])
+        gain = action[1] * (action[2])
         total_gain += gain
 
     return total_gain

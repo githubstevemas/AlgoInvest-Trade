@@ -45,7 +45,6 @@ def pick_actions(actions_list):
 
     for i in range(1, len(actions_list) + 1):
         for current_money in range(1, money_cents + 1):
-
             if actions_list[i - 1][1] <= current_money:
                 combinaisons[i][current_money] = max(actions_list[i - 1][2] +
                                                      combinaisons[i - 1][current_money - actions_list[i - 1][1]],
